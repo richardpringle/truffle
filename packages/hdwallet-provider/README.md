@@ -20,18 +20,17 @@ You can use this provider wherever a Web3 provider is needed, not just in Truffl
 
 By default, the `HDWalletProvider` will use the address of the first address that's generated from the mnemonic. If you pass in a specific index, it'll use that address instead.
 
-There are two ways of instantiating `HDWalletProvider`: with an object containing named keys or with positional arguments.
-We recommend using an object with named keys if possible.
+### Instantiation
 
-### Using an object with named keys
-
+There are many options you can specify when instantiating. You do this by
+providing a single object with named keys as the first argument.
 You can specify the following options in your object:
 
 Parameters:
 
 | Parameter | Type | Default | Required | Description |
 | ------ | ---- | ------- | ----------- | ----------- |
-| `mnemonic` | `object` | null | [ ] | Object containing `phrase` and `password` (optional) properties. `phrase` is a 12 word mnemonic string which addresses are created from. |
+| `mnemonic` | `object\|string` | null | [ ] | Object containing `phrase` and `password` (optional) properties. `phrase` is a 12 word mnemonic string which addresses are created from. Alternately you can just specify a string mnemonic from which to generate addresses. |
 | `privateKeys` | `string[]` | null | [ ] | Array containing 1 or more private keys. |
 | `providerOrUrl` | `string\|object` | `null` | [x] | URI or Ethereum client to send all other non-transaction-related Web3 requests |
 | `addressIndex` | `number` | `0` | [ ] | If specified, will tell the provider to manage the address at the index specified |
@@ -47,27 +46,25 @@ const Web3 = require("web3");
 const mnemonicPhrase = {
   phrase: "mountains supernatural bird..."; // 12 word mnemonic
 };
+const password = "my secret password";
 let provider = new HDWalletProvider({
   mnemonic: {
-    phrase: mnemonicPhrase
+    phrase: mnemonicPhrase,
+    password: password
   },
   providerOrUrl: "http://localhost:8545"
 });
 
 // Or, alternatively pass in a zero-based address index.
 provider = new HDWalletProvider({
-  mnemonic: {
-    phrase: mnemonicPhrase
-  },
+  mnemonic: mnemonicPhrase,
   provider: "http://localhost:8545",
   addressIndex: 5
 });
 
 // Or, use your own hierarchical derivation path
 provider = new HDWalletProvider({
-  mnemonic: {
-    phrase: mnemonicPhrase
-  },
+  mnemonic: mnemonicPhrase,
   provider: "http://localhost:8545",
   numberOfAddresses: 1,
   shareNonce: true,
@@ -90,9 +87,14 @@ provider.engine.stop();
 
 **Note: If both mnemonic and private keys are provided, the mnemonic is used.**
 
-### Using positional arguments
+### Deprecated positional argument syntax for instantiation
 
-You can specify the following options in the order below. Pass `undefined` if you want to omit a parameter.
+**Note:** The following syntax is legacy syntax and deprecated. We provide the
+following for clarity only. We recommend you specify
+your options in an object with named keys as described above.
+
+The legacy syntax allows you to specify the following options in the order below.
+Pass `undefined` if you want to omit a parameter.
 
 Parameters:
 
@@ -105,54 +107,14 @@ Parameters:
 | `shareNonce` | `boolean` | `true` | [ ] | If `false`, a new WalletProvider will track its own nonce-state |
 | `derivationPath` | `string` | `"m/44'/60'/0'/0/"` | [ ] | If specified, will tell the wallet engine what derivation path should use to derive addresses. |
 
-Some examples can be found below:
 
-```javascript
-const HDWalletProvider = require("@truffle/hdwallet-provider");
-const Web3 = require("web3");
-const mnemonic = "mountains supernatural bird..."; // 12 word mnemonic
-let provider = new HDWalletProvider(mnemonic, "http://localhost:8545");
+Instead of a mnemonic, you can alternatively provide a private key or array of
+private keys as the first parameter. When providing an array, `addressIndex`
+and `numberOfAddresses` are fully supported.
 
-// Or, alternatively pass in a zero-based address index.
-provider = new HDWalletProvider(mnemonic, "http://localhost:8545", 5);
-
-// If you want to omit `addressIndex` but pass `numberOfAddresses`
-provider = new HDWalletProvider(mnemonic, "http://localhost:8545", undefined, 4);
-
-// Or, use your own hierarchical derivation path
-provider = new HDWalletProvider(mnemonic, "http://localhost:8545", 5, 1, true, "m/44'/137'/0'/0/");
-
-// HDWalletProvider is compatible with Web3. Use it at Web3 constructor, just like any other Web3 Provider
-const web3 = new Web3(provider);
-
-// Or, if web3 is alreay initialized, you can call the 'setProvider' on web3, web3.eth, web3.shh and/or web3.bzz
-web3.setProvider(provider)
-
-// ...
-// Write your code here.
-// ...
-
-// At termination, `provider.engine.stop()' should be called to finish the process elegantly.
-provider.engine.stop();
-```
-
-### Private Keys
-
-Instead of a mnemonic, you can alternatively provide a private key or array of private keys as the first parameter. When providing an array, `addressIndex` and `numberOfAddresses` are fully supported.
-
-```javascript
-const HDWalletProvider = require("@truffle/hdwallet-provider");
-//load single private key as string
-let provider = new HDWalletProvider("3f841bf589fdf83a521e55d51afddc34fa65351161eead24f064855fc29c9580", "http://localhost:8545");
-
-// Or, pass an array of private keys, and optionally use a certain subset of addresses
-const privateKeys = [
-  "3f841bf589fdf83a521e55d51afddc34fa65351161eead24f064855fc29c9580",
-  "9549f39decea7b7504e15572b2c6a72766df0281cea22bd1a3bc87166b1ca290",
-];
-provider = new HDWalletProvider(privateKeys, "http://localhost:8545", 0, 2); //start at address_index 0 and load both addresses
-```
-**NOTE: This is just an example. NEVER hard code production/mainnet private keys in your code or commit them to git. They should always be loaded from environment variables or a secure secret management system.**
+**NOTE: NEVER hard code production/mainnet private keys in your code or commit 
+them to git. They should always be loaded from environment variables or a
+secure secret management system.**
 
 ## Truffle Usage
 
